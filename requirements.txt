@@ -1,0 +1,6 @@
+Balethon
+httpx[socks]
+PyYAML
+python-dotenv
+tzdata
+APScheduler<4

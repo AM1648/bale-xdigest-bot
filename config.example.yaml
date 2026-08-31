@@ -1,0 +1,10 @@
+trigger: "20:00:00"      # daily run time (Asia/Tehran)
+api_delay_ms: 3000       # pause between RapidAPI calls
+admins: [1234567890]     # Bale user IDs allowed to use /trigger; receive daily reports
+
+channels:
+  - channel_name: news
+    channel_id: 1234567890
+    users:
+      - user_name: elonmusk    # X screen name (display only)
+        user_id: "44196397"    # X numeric user ID

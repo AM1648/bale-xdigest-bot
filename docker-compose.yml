@@ -1,0 +1,10 @@
+services:
+  bot:
+    build: .
+    restart: no
+    env_file: .env
+    volumes:
+      - ./config.yaml:/app/config.yaml:ro
+      - ./cache_files:/app/cache_files
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
