@@ -3,4 +3,5 @@ httpx[socks]
 PyYAML
 python-dotenv
 tzdata
-APScheduler<4
+APScheduler
+aiofiles

@@ -1,10 +1,8 @@
-# TweetParser.py
 import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from Tweet import Tweet
-
+from models.tweet import Tweet
 
 class TweetParser:
     """Parses X/Twitter 'user tweets' GraphQL API responses."""
@@ -22,7 +20,7 @@ class TweetParser:
             for entry in TweetParser._instruction_entries(instruction):
                 content = entry.get("content")
                 if not isinstance(content, dict) or content.get("__typename") != "TimelineTimelineItem":
-                    continue  # non-tweet blocks (e.g. "Who to follow" modules)
+                    continue
                 item = content.get("content")
                 if not isinstance(item, dict) or item.get("__typename") != "TimelineTweet":
                     continue
@@ -40,7 +38,7 @@ class TweetParser:
             return [entry] if entry else []
         if kind == "TimelineAddEntries":
             return instruction.get("entries") or []
-        return []  # TimelineClearCache, ...
+        return []
 
     @staticmethod
     def _parse_tweet_item(item: Dict[str, Any]) -> Tweet:
@@ -55,10 +53,9 @@ class TweetParser:
         user = TweetParser._dig(result, "core", "user_results", "result", "core") or {}
         retweeted = TweetParser._tweet_result(legacy.get("retweeted_status_results"))
         quoted = TweetParser._tweet_result(result.get("quoted_tweet_results"))
-        if quoted is None and retweeted is not None:  # retweet of a quote
+        if quoted is None and retweeted is not None:
             quoted = TweetParser._tweet_result(retweeted.get("quoted_tweet_results"))
 
-        # media: first hit wins across self -> retweeted -> quoted
         images, video, gif = [], None, None
         for source in (result, retweeted, quoted):
             if source is not None:
@@ -95,7 +92,6 @@ class TweetParser:
 
     @staticmethod
     def _tweet_result(wrapper: Any) -> Optional[Dict[str, Any]]:
-        """Usable Tweet payload from a tweet_results wrapper; None if unavailable."""
         result = wrapper.get("result") if isinstance(wrapper, dict) else None
         if isinstance(result, dict) and result.get("__typename") == "TweetWithVisibilityResults":
             result = result.get("tweet")
@@ -103,7 +99,6 @@ class TweetParser:
 
     @staticmethod
     def _ref(result: Dict[str, Any]) -> tuple:
-        """(author, screen_name, text, link) of a retweeted/quoted tweet."""
         user = TweetParser._dig(result, "core", "user_results", "result", "core") or {}
         note = TweetParser._dig(result, "note_tweet", "note_tweet_results", "result", "text")
         screen_name = user.get("screen_name")
