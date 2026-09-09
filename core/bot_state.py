@@ -1,6 +1,5 @@
 import json
 from pathlib import Path
-from datetime import datetime
 from typing import Optional
 
 class BotState:
@@ -18,12 +17,16 @@ class BotState:
         with open(self.path, 'w') as f:
             json.dump(self._data, f, indent=2)
 
-    def get_last_fetch(self, channel_name: str, user_id: str) -> Optional[datetime]:
-        ts = self._data.get("last_fetch", {}).get(channel_name, {}).get(user_id)
-        if ts:
-            return datetime.fromisoformat(ts)
-        return None
+    def is_tweet_sent(self, channel_name: str, user_id: str, tweet_id: str) -> bool:
+        return tweet_id in self._data.get("sent_tweets", {}).get(channel_name, {}).get(user_id, [])
 
-    def set_last_fetch(self, channel_name: str, user_id: str, dt: datetime):
-        self._data.setdefault("last_fetch", {}).setdefault(channel_name, {})[user_id] = dt.isoformat()
+    def add_sent_tweet(self, channel_name: str, user_id: str, tweet_id: str):
+        self._data.setdefault("sent_tweets", {}).setdefault(channel_name, {}).setdefault(user_id, []).append(tweet_id)
+        self._save()
+
+    def add_sent_tweets(self, channel_name: str, user_id: str, tweet_ids: list[str]):
+        if not tweet_ids:
+            return
+        sent = self._data.setdefault("sent_tweets", {}).setdefault(channel_name, {}).setdefault(user_id, [])
+        sent.extend(tweet_ids)
         self._save()

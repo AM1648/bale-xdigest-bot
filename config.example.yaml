@@ -1,6 +1,6 @@
-trigger: "20:00:00"      # daily run time (Asia/Tehran)
-api_delay_ms: 3000       # pause between RapidAPI calls
-admins: [1234567890]     # Bale user IDs allowed to use /trigger; receive daily reports
+refresh_period: "6h"      # interval between runs: 30m, 2h, 1d, etc.
+api_delay_ms: 3000        # pause between RapidAPI calls
+admins: [1234567890]      # Bale user IDs allowed to use /trigger; receive daily reports
 
 channels:
   - channel_name: news
