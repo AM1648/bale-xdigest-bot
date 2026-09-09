@@ -31,7 +31,7 @@ class BaleXBot:
         self.state = BotState()
         self.twitter_client = TwitterClient(self.http, os.environ["RAPIDAPI_KEY"])
         self.media_downloader = MediaDownloader(self.http)
-        self.renderer = TweetRenderer()
+        self.renderer = TweetRenderer(self.config.timezone)
         self.bale_client = BaleBotClient(self.bot, self.media_downloader, self.renderer)
         self.scraper = UserScraper(self.config, self.twitter_client, self.bale_client, self.state)
         self.scheduler = AsyncIOScheduler()
