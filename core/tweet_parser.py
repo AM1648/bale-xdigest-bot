@@ -114,7 +114,7 @@ class TweetParser:
             if kind == "photo":
                 images.append(medium["media_url_https"])
             elif kind in ("video", "animated_gif"):
-                url = TweetParser._best_video_url(medium)
+                url = TweetParser._lowest_quality_video_url(medium)
                 if kind == "video":
                     video = video or url
                 else:
@@ -122,11 +122,11 @@ class TweetParser:
         return images, video, gif
 
     @staticmethod
-    def _best_video_url(medium: Dict[str, Any]) -> Optional[str]:
+    def _lowest_quality_video_url(medium: Dict[str, Any]) -> Optional[str]:
         variants = TweetParser._dig(medium, "video_info", "variants") or []
         mp4s = [v for v in variants if v.get("content_type") == "video/mp4"]
-        best = max(mp4s or variants, key=lambda v: v.get("bitrate") or 0, default=None)
-        return best.get("url") if best else None
+        lowest = min(mp4s or variants, key=lambda v: v.get("bitrate") or 0, default=None)
+        return lowest.get("url") if lowest else None
 
     @staticmethod
     def _dig(obj: Any, *keys: str) -> Any:
