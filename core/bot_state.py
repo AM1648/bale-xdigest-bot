@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import Optional
 
 class BotState:
-    def __init__(self, file_path: Path = Path("state.json")):
+    def __init__(self, file_path: Path = Path("state/state.json")):
         self.path = file_path
         self._data = self._load()
 

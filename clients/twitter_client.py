@@ -28,9 +28,4 @@ class TwitterClient:
         )
         response.raise_for_status()
         data = response.json()
-        # Cache response asynchronously
-        epoch_seconds = int(time.time())
-        cache_file = self.cache_dir / f"{user_id}-{epoch_seconds}.json"
-        async with aiofiles.open(cache_file, 'w') as f:
-            await f.write(json.dumps(data))
         return self.parser.parse_user_tweets_response(data)

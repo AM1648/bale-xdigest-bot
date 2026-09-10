@@ -1,4 +1,4 @@
-cache_files
+.state
 config.yaml
 
 # Byte-compiled / optimized / DLL files

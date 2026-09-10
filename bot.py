@@ -103,7 +103,7 @@ class BaleXBot:
         lines = [header]
         for channel_name, users in reports.items():
             lines.append("")
-            lines.append(f"📢 '{channel_name}'")
+            lines.append(f"🔊 '{channel_name}'")
             for user_name, result in users.items():
                 lines.append(f" • '{user_name}': {result}")
         return "\n".join(lines)
