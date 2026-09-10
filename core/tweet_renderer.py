@@ -1,23 +1,16 @@
 import re
-from datetime import datetime
-from zoneinfo import ZoneInfo
-import jdatetime
 from models.tweet import Tweet
 from models.user import User
+from core.persian_text import PersianText
 
 
 class TweetRenderer:
     # Bale always parses Markdown: escape these wherever they appear as literal text
     _MARKDOWN = str.maketrans({c: "\\" + c for c in "\\()[]*`_"})
-    _PERSIAN_DIGITS = str.maketrans("0123456789", "۰۱۲۳۴۵۶۷۸۹")
     _RT_PREFIX = re.compile(r"^RT @\w+:\s*")
-    _locale_set = False
 
-    def __init__(self, timezone_str: str):
-        self.timezone = ZoneInfo(timezone_str)
-        if not TweetRenderer._locale_set:
-            jdatetime.set_locale('fa_IR')
-            TweetRenderer._locale_set = True
+    def __init__(self, persian: PersianText):
+        self.persian = persian
 
     def render(self, tweet: Tweet, user: User, media_failed: bool = False) -> str:
         def _esc(text: str | None) -> str:
@@ -41,15 +34,9 @@ class TweetRenderer:
             quote += "\n"
 
         # Timestamp
-        timestamp = self._format_timestamp(tweet.created_at)
+        timestamp = self.persian.format_datetime(tweet.created_at)
 
         # Media-failure prefix
         prefix = "⚠️ Media failed to load\n" if media_failed else ""
 
         return f"{prefix}{quote}{header}\n\n{body}\n\n⏱️ {timestamp}"
-
-    def _format_timestamp(self, dt: datetime) -> str:
-        local_dt = dt.astimezone(self.timezone)
-        jalali = jdatetime.datetime.fromgregorian(datetime=local_dt)
-        formatted = jalali.strftime("%H:%M / %d %B")
-        return formatted.translate(self._PERSIAN_DIGITS)

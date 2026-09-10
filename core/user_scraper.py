@@ -9,6 +9,7 @@ from models.user import User
 from clients.twitter_client import TwitterClient
 from clients.bale_bot_client import BaleBotClient
 from core.bot_state import BotState
+from core.persian_text import PersianText
 
 log = logging.getLogger("user_scraper")
 
@@ -24,11 +25,13 @@ class UserScraper:
         twitter_client: TwitterClient,
         bale_client: BaleBotClient,
         state: BotState,
+        persian: PersianText,
     ):
         self.cfg = config
         self.twitter = twitter_client
         self.bale = bale_client
         self.state = state
+        self.persian = persian
         self._lock = asyncio.Lock()
         self._last_api_call = 0.0
 
@@ -52,6 +55,8 @@ class UserScraper:
                     t for t in tweets
                     if t is not None and not self.state.is_tweet_sent(ch.channel_name, user.user_id, t.tweet_id)
                 ]
+                count = self.persian.number(len(new_tweets))
+                await self.bale.send_message(ch.channel_id, f"📥 '{user.user_name}': {count} توییت جدید")
                 # Send oldest first
                 sent = 0
                 sent_ids = []
@@ -61,14 +66,14 @@ class UserScraper:
                         sent_ids.append(t.tweet_id)
                 if sent_ids:
                     self.state.add_sent_tweets(ch.channel_name, user.user_id, sent_ids)
-                # Send status message about count
-                status_msg = f"کاربر '{user.user_name}': {len(new_tweets)} توییت جدید"
-                await self.bale.send_message(ch.channel_id, status_msg)
-                user_results[user.user_name] = f"{sent} sent"
+                user_results[user.user_name] = f"{self.persian.number(sent)} تا"
             except Exception as e:
-                log.error("failed to process user %s: %s", user.user_name, e)
-                await self.bale.send_message(ch.channel_id, f"Failed to fetch tweets for @{user.user_name}: {e}")
-                user_results[user.user_name] = "FAILED"
+                log.error("failed to process user '%s': %s", user.user_name, e)
+                await self.bale.send_message(
+                    ch.channel_id,
+                    f"⚠️ دریافت توییت‌های '{user.user_name}' ناموفق بود: {e}",
+                )
+                user_results[user.user_name] = "ناموفق"
         return user_results
 
     async def _throttle(self):
