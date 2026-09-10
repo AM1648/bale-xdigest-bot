@@ -8,7 +8,6 @@ from balethon import Client
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from models.config import Config
-from models.channel import Channel
 from clients.twitter_client import TwitterClient
 from clients.bale_bot_client import BaleBotClient
 from clients.media_downloader import MediaDownloader
@@ -50,7 +49,6 @@ class BaleXBot:
     def _register_handlers(self):
         @self.bot.on_command(name="trigger")
         async def trigger(channel_name=None, *, message):
-            log.info("/trigger triggered")
             if message.author.id not in self.config.admins:
                 return await message.reply("⛔ Not authorized")
             if channel_name is None:
@@ -70,14 +68,22 @@ class BaleXBot:
 
         @self.bot.on_initialize()
         async def start_scheduler():
-            self.scheduler.add_job(
-                self._scheduled_run,
-                "interval",
-                seconds=self.config.refresh_period_seconds,
-                misfire_grace_time=300,
-            )
+            for t in self.config.trigger_times:
+                self.scheduler.add_job(
+                    self._scheduled_run,
+                    "cron",
+                    hour=t.hour,
+                    minute=t.minute,
+                    second=t.second,
+                    timezone=self.config.timezone,
+                    misfire_grace_time=300,
+                )
             self.scheduler.start()
-            log.info("bot started; refresh interval = %d seconds", self.config.refresh_period_seconds)
+            log.info(
+                "bot started; scheduled runs at %s (%s)",
+                ", ".join(f"{t:%H:%M}" for t in self.config.trigger_times),
+                self.config.timezone,
+            )
 
     async def _scheduled_run(self):
         try:
