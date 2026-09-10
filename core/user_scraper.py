@@ -55,8 +55,9 @@ class UserScraper:
                     t for t in tweets
                     if t is not None and not self.state.is_tweet_sent(ch.channel_name, user.user_id, t.tweet_id)
                 ]
-                count = self.persian.number(len(new_tweets))
-                await self.bale.send_message(ch.channel_id, f"📥 '{user.user_name}': {count} توییت جدید")
+                if new_tweets:
+                    count = self.persian.number(len(new_tweets))
+                    await self.bale.send_message(ch.channel_id, f"📥 '{user.user_name}': {count} توییت جدید")
                 # Send oldest first
                 sent = 0
                 sent_ids = []

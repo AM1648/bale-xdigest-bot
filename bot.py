@@ -48,7 +48,6 @@ class BaleXBot:
     def _register_handlers(self):
         @self.bot.on_command(name="trigger")
         async def trigger(channel_name=None, *, message):
-            log.info("/trigger triggered")
             if message.author.id not in self.config.admins:
                 return await message.reply("شما ادمین نیستید.")
             if channel_name is None:
@@ -107,7 +106,7 @@ class BaleXBot:
         lines = [header]
         for channel_name, users in reports.items():
             lines.append("")
-            lines.append(f"🔊 '{channel_name}'")
+            lines.append(f"🔊 {channel_name}")
             for user_name, result in users.items():
                 lines.append(f" • '{user_name}': {result}")
         return "\n".join(lines)
