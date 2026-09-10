@@ -62,6 +62,10 @@ class BaleXBot:
                 return await message.reply("⏳ یک اجرا در حال انجام است؛ بعداً تلاش کنید")
             await message.reply(self._format_report(report))
 
+        @self.bot.on_command(name="chat-id")
+        async def get_id(*, message):
+            await message.reply(f"شناسهٔ گفتگو: {message.chat.id}")
+
         @self.bot.on_error()
         async def log_error(*, event=None, error=None):
             log.error("Unhandled exception: %r", error or event)
