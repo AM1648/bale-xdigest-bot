@@ -11,7 +11,7 @@ log = logging.getLogger("bale-bot-client")
 
 class BaleBotClient:
     MESSAGE_LIMIT = 4096
-    CAPTION_LIMIT = 1000
+    CAPTION_LIMIT = 4096
     MORE_SUFFIX = " (👇)"
 
     def __init__(self, bot: Client, media_downloader: MediaDownloader, renderer: TweetRenderer):
