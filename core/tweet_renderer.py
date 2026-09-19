@@ -6,7 +6,7 @@ from core.persian_text import PersianText
 
 class TweetRenderer:
     # Bale always parses Markdown: escape these wherever they appear as literal text
-    _MARKDOWN = str.maketrans({c: "\\" + c for c in "\\()[]*`_"})
+    _MARKDOWN = str.maketrans({c: "\\" + c for c in "*`_"})
     _RT_PREFIX = re.compile(r"^RT @\w+:\s*")
 
     def __init__(self, persian: PersianText):
