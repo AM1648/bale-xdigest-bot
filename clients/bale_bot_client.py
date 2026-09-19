@@ -27,14 +27,14 @@ class BaleBotClient:
         try:
             if tweet.video_url:
                 video = await self.media.download_video(tweet.video_url)
-                chunks = self._split_text(text, self.CAPTION_LIMIT)
+                chunks = self._split_text(text, self.CAPTION_LIMIT, self.MESSAGE_LIMIT)
                 await self.bot.send_video(chat_id, video, caption=chunks[0])
                 await self._send_chunks(chat_id, chunks[1:])
                 if tweet.image_urls:
                     await self._send_photos(chat_id, tweet.image_urls)
             elif tweet.gif_url:
                 gif = await self.media.download_gif(tweet.gif_url)
-                chunks = self._split_text(text, self.CAPTION_LIMIT)
+                chunks = self._split_text(text, self.CAPTION_LIMIT, self.MESSAGE_LIMIT)
                 await self.bot.send_animation(chat_id, gif, caption=chunks[0])
                 await self._send_chunks(chat_id, chunks[1:])
                 if tweet.image_urls:
@@ -74,7 +74,7 @@ class BaleBotClient:
 
     async def _send_photos(self, chat_id: int, urls: list[str], caption: str | None = None):
         photos = [await self.media.download_photo(url) for url in urls]
-        chunks = self._split_text(caption, self.CAPTION_LIMIT) if caption else [None]
+        chunks = self._split_text(caption, self.CAPTION_LIMIT, self.MESSAGE_LIMIT) if caption else [None]
         if len(photos) == 1:
             await self.bot.send_photo(chat_id, photos[0], caption=chunks[0])
         else:
@@ -82,29 +82,38 @@ class BaleBotClient:
             await self.bot.send_media_group(chat_id, media)
         await self._send_chunks(chat_id, chunks[1:])
 
-    def _split_text(self, text: str, limit: int) -> list[str]:
+    def _split_text(self, text: str, first_limit: int, limit: int | None = None) -> list[str]:
         """
-        Split text into chunks that fit in `limit`.
+        Split text into chunks.
+        The first chunk fits in `first_limit`, all subsequent chunks fit in `limit`.
         Each non-final chunk gets MORE_SUFFIX appended.
         Splits at word boundaries; hard-splits a single word that is too long.
         """
-        if len(text) <= limit:
+        if limit is None:
+            limit = first_limit
+
+        if len(text) <= first_limit:
             return [text]
 
         suffix = self.MORE_SUFFIX
-        budget = limit - len(suffix)
         chunks: list[str] = []
         remaining = text
+        current_limit = first_limit
 
         while remaining:
-            if len(remaining) <= limit:
+            if len(remaining) <= current_limit:
                 chunks.append(remaining)
                 break
+
+            budget = current_limit - len(suffix)
             split_at = remaining.rfind(' ', 0, budget + 1)
             if split_at <= 0:
                 split_at = budget  # single word longer than budget → hard split
             chunk = remaining[:split_at].rstrip()
             chunks.append(chunk + suffix)
             remaining = remaining[split_at:].lstrip()
+
+            # After the first chunk, switch to the regular limit.
+            current_limit = limit
 
         return chunks
