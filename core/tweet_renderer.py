@@ -10,7 +10,7 @@ class TweetRenderer:
     def __init__(self, persian: PersianText):
         self.persian = persian
 
-    def render(self, tweet: Tweet, user: User, media_failed: bool = False) -> str:
+    def render(self, tweet: Tweet, user: User, media_failed: bool = False, show_header: bool = True) -> str:
 
         if tweet.has_retweet and tweet.original_link:
             header = f"✍️ [{tweet.original_screen_name}]({tweet.original_link}) (🔃 {user.user_name})"
@@ -31,5 +31,9 @@ class TweetRenderer:
 
         # Media-failure prefix
         prefix = "⚠️ Media failed to load\n" if media_failed else ""
+
+        if not show_header:
+            retweet_marker = f"(🔃 {user.user_name}) " if tweet.has_retweet and tweet.original_link else ""
+            return f"{prefix}{quote}{retweet_marker}✍️ {body}\n\n⏱️ {timestamp}"
 
         return f"{prefix}{quote}{header}\n\n{body}\n\n⏱️ {timestamp}"

@@ -21,9 +21,9 @@ class BaleBotClient:
 
     # ---------- public API ----------
 
-    async def send_tweet(self, chat_id: int, tweet: Tweet, user: User) -> bool:
+    async def send_tweet(self, chat_id: int, tweet: Tweet, user: User, show_header: bool = True) -> bool:
         """Send one tweet; on any media failure fall back to a text-only message."""
-        text = self.renderer.render(tweet, user)
+        text = self.renderer.render(tweet, user, show_header=show_header)
         try:
             if tweet.video_url:
                 video = await self.media.download_video(tweet.video_url)
@@ -46,7 +46,7 @@ class BaleBotClient:
             return True
         except MediaError as e:
             log.warning("media download failed for %s, falling back to text: %s", tweet.link, e)
-            fallback = self.renderer.render(tweet, user, media_failed=True)
+            fallback = self.renderer.render(tweet, user, media_failed=True, show_header=show_header)
             await self._send_long_message(chat_id, fallback)
             return True
         except Exception as e:

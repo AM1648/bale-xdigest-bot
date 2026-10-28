@@ -6,3 +6,7 @@ class Channel:
     channel_name: str
     channel_id: int
     users: list[User]
+
+    @property
+    def is_single_user(self) -> bool:
+        return len(self.users) == 1

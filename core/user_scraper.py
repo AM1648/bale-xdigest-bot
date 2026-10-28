@@ -47,6 +47,7 @@ class UserScraper:
 
     async def _process_channel(self, ch: Channel, cache: Dict[str, List[Tweet | None] | Exception]) -> Dict[str, str]:
         user_results = {}
+        single_user = ch.is_single_user
         for user in ch.users:
             try:
                 tweets = await self._fetch_user_tweets(user.user_id, cache)
@@ -55,14 +56,14 @@ class UserScraper:
                     t for t in tweets
                     if t is not None and not self.state.is_tweet_sent(ch.channel_name, user.user_id, t.tweet_id)
                 ]
-                if new_tweets:
+                if new_tweets and not single_user:
                     count = self.persian.number(len(new_tweets))
                     await self.bale.send_message(ch.channel_id, f"📥 '{user.user_name}': {count} توییت جدید")
                 # Send oldest first
                 sent = 0
                 sent_ids = []
                 for t in reversed(new_tweets):
-                    if await self.bale.send_tweet(ch.channel_id, t, user):
+                    if await self.bale.send_tweet(ch.channel_id, t, user, show_header=not single_user):
                         sent += 1
                         sent_ids.append(t.tweet_id)
                 if sent_ids:
