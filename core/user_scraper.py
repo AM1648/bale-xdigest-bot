@@ -5,7 +5,7 @@ from typing import Dict, List
 
 from models.config import Config
 from models.channel import Channel
-from models.user import User
+from models.tweet import Tweet
 from clients.twitter_client import TwitterClient
 from clients.bale_bot_client import BaleBotClient
 from core.bot_state import BotState
@@ -40,16 +40,16 @@ class UserScraper:
             raise Busy
         async with self._lock:
             results = {}
+            cache: Dict[str, List[Tweet | None] | Exception] = {}
             for ch in channels:
-                results[ch.channel_name] = await self._process_channel(ch)
+                results[ch.channel_name] = await self._process_channel(ch, cache)
             return results
 
-    async def _process_channel(self, ch: Channel) -> Dict[str, str]:
+    async def _process_channel(self, ch: Channel, cache: Dict[str, List[Tweet | None] | Exception]) -> Dict[str, str]:
         user_results = {}
         for user in ch.users:
-            await self._throttle()
             try:
-                tweets = await self.twitter.fetch_user_tweets(user.user_id)
+                tweets = await self._fetch_user_tweets(user.user_id, cache)
                 # Filter out already sent tweets (global dedupe)
                 new_tweets = [
                     t for t in tweets
@@ -76,6 +76,23 @@ class UserScraper:
                 )
                 user_results[user.user_name] = "ناموفق"
         return user_results
+
+    async def _fetch_user_tweets(
+        self, user_id: str, cache: Dict[str, List[Tweet | None] | Exception]
+    ) -> List[Tweet | None]:
+        cached = cache.get(user_id)
+        if cached is None:
+            await self._throttle()
+            try:
+                cached = await self.twitter.fetch_user_tweets(user_id)
+            except Exception as e:
+                cached = e
+            cache[user_id] = cached
+        else:
+            log.debug("reusing cached result for user %s", user_id)
+        if isinstance(cached, Exception):
+            raise cached
+        return cached
 
     async def _throttle(self):
         wait = self.cfg.api_delay - (time.monotonic() - self._last_api_call)
