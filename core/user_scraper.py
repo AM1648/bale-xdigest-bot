@@ -71,10 +71,14 @@ class UserScraper:
                 user_results[user.user_name] = f"{self.persian.number(sent)} تا"
             except Exception as e:
                 log.error("failed to process user '%s': %s", user.user_name, e)
-                await self.bale.send_message(
-                    ch.channel_id,
-                    f"⚠️ دریافت توییت‌های '{user.user_name}' ناموفق بود: {e}",
-                )
+                for admin in self.cfg.admins:
+                    try:
+                        await self.bale.send_message(
+                            admin,
+                            f"⚠️ دریافت توییت‌های '{user.user_name}' ناموفق بود: {e}",
+                        )
+                    except Exception as e:
+                        log.warning("could not DM admin %s: %s", admin, e)
                 user_results[user.user_name] = "ناموفق"
         return user_results
 
