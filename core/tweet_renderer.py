@@ -21,10 +21,10 @@ class TweetRenderer:
 
         quote = ""
         if tweet.has_quote and tweet.quoted_link:
-            quote = f"💬 [{tweet.quoted_screen_name}]({tweet.quoted_link})\n"
+            quote = f"💬 [{tweet.quoted_screen_name}]({tweet.quoted_link})\n\n"
             if tweet.quoted_text:
                 quote += f"«{tweet.quoted_text}»\n"
-            quote += "\n\n"
+            quote += "\n"
 
         # Timestamp
         timestamp = self.persian.format_datetime(tweet.created_at)
