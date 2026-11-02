@@ -13,7 +13,7 @@ class TweetRenderer:
     def render(self, tweet: Tweet, user: User, media_failed: bool = False, show_header: bool = True) -> str:
 
         if tweet.has_retweet and tweet.original_link:
-            header = f"✍️ [{tweet.original_screen_name}]({tweet.original_link}) (🔃 {user.user_name})"
+            header = f"✍️ [{tweet.original_author}]({tweet.original_link}) (🔃 {user.user_name})"
             body = tweet.long_text if tweet.long_text is not None else tweet.original_text
         else:
             header = f"✍️ [{user.user_name}]({tweet.link})"
@@ -21,7 +21,7 @@ class TweetRenderer:
 
         quote = ""
         if tweet.has_quote and tweet.quoted_link:
-            quote = f"💬 [{tweet.quoted_screen_name}]({tweet.quoted_link})\n\n"
+            quote = f"💬 [{tweet.quoted_author}]({tweet.quoted_link})\n\n"
             if tweet.quoted_text:
                 quote += f"«{tweet.quoted_text}»\n"
             quote += "\n"
@@ -33,7 +33,7 @@ class TweetRenderer:
         prefix = "⚠️ Media failed to load\n" if media_failed else ""
 
         if not show_header:
-            retweet_marker = f"(🔃 {user.user_name}) " if tweet.has_retweet and tweet.original_link else ""
-            return f"{prefix}{quote}{retweet_marker}✍️ {body}\n\n⏱️ {timestamp}"
+            retweet_marker = f"(🔃 [{tweet.original_author}]({tweet.original_link})) " if tweet.has_retweet and tweet.original_link else ""
+            return f"{prefix}{quote}{retweet_marker}[✍️]({tweet.link}) {body}\n\n⏱️ {timestamp}"
 
         return f"{prefix}{quote}{header}\n\n{body}\n\n⏱️ {timestamp}"
