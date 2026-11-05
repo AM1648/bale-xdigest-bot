@@ -24,4 +24,4 @@ class PersianText:
     def format_datetime(self, dt: datetime) -> str:
         local = dt.astimezone(self.timezone)
         j = jdatetime.datetime.fromgregorian(datetime=local)
-        return self.digits(j.strftime("%H:%M / %d %B"))
+        return self.digits(j.strftime("%-H:%M | %-d %B"))
